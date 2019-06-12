@@ -32,7 +32,8 @@ function initPlayer() {
   // Attach player to the window to make it easy to access in the JS console.
   window.player = player;
 
-  bindEventListeners(player);
+  // listenToAllEvents(player);
+  listenToSpecificEvents(player);
 
   // Load the stream
   player
@@ -41,10 +42,9 @@ function initPlayer() {
     .catch(onPlayerError);
 }
 
-function bindEventListeners(player) {
-
-  // Bind all events to onEvent method
-  // Event list from https://shaka-player-demo.appspot.com/docs/api/shaka.Player.html#.event:AbrStatusChangedEvent
+// Binds all events to onEvent method
+// Event list from https://shaka-player-demo.appspot.com/docs/api/shaka.Player.html#.event:AbrStatusChangedEvent
+function listenToAllEvents(player) {
 
   player.addEventListener('abrstatuschanged', onEvent);
   player.addEventListener('adaptation', onEvent);
@@ -67,8 +67,18 @@ function bindEventListeners(player) {
   player.addEventListener('trackschanged', onEvent);
   player.addEventListener('unloading', onEvent);
   player.addEventListener('variantchanged', onEvent);
+}
 
-  // TODO bind events specifically
+function listenToSpecificEvents(player) {
+
+  player.addEventListener('loading', onEventLoads);
+  player.addEventListener('manifestparsed', onEventManifestParsed);
+  player.addEventListener('error', onEventError);
+  player.addEventListener('unloading', onEventUnloaded);
+
+  // Not demanded but helpful to apprehend the player lifecycle
+  player.addEventListener('buffering', onEventBuffering);
+  player.addEventListener('onstatechange', onEventStateChanged);
 }
 
 function onPlayerLoaded() {
@@ -86,6 +96,67 @@ function onPlayerError(error) {
 
 function onEvent(event) {
   console.debug('[EVENT', event.type, ']', event);
+}
+
+function onEventLoads(event) {
+  console.info('[VIDEO_LOADS]', manifestUri);
+}
+
+function onEventUnloaded(event) {
+  console.info('[VIDEO_UNLOADED]');
+}
+
+function onEventStateChanged(event) {
+  console.info('[STATE]', event.state);
+}
+
+function onEventBuffering(event) {
+  console.info('[VIDEO_BUFFERING]', event.buffering);
+}
+
+function onEventError(event) {
+  onError(event.detail);
+}
+
+function onEventManifestParsed(event) {
+
+  var player = event.target
+  var manifest = player.getManifest()
+
+  // Retrieve all the variants from the manifest
+  var variants = manifest.periods[0].variants
+
+  // Split audio and video tracks
+  var audioTracks = [];
+  var videoTracks = [];
+
+  // Split audio and video tracks
+  variants.forEach(function (variant) {
+
+    var audioTrack = variant.audio
+    if (!audioTracks.includes(audioTrack)) {
+      audioTracks.push(audioTrack)
+    }
+
+    var videoTrack = variant.video
+    if (!videoTracks.includes(videoTrack)) {
+      videoTracks.push(videoTrack)
+
+      // Log only video track details
+      var videoSize = 'size: ' + videoTrack.width + 'x' + videoTrack.height
+      var videoBandwidth = 'bandwidth: ' + videoTrack.bandwidth
+
+      console.info('[MEDIA_VARIANT]', videoSize, videoBandwidth)
+    }
+  })
+
+  console.info('[METADATA_PARSED]', 'variants: ' + variants.length, 'audio: ' + audioTracks.length, 'video: ' + videoTracks.length);
+
+  if (player.isLive()) {
+    console.info('[STREAM_TYPE] live');
+  } else {
+    console.info('[STREAM_TYPE] VoD');
+  }
 }
 
 //
