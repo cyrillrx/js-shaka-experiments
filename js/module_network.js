@@ -2,7 +2,7 @@ export function bindNetworkCalls(player) {
 
     const networkingEngine = player.getNetworkingEngine();
   
-    const responseFilter = (responseType, request) => {
+    const responseFilter = (responseType, response) => {
   
       switch (responseType) {
         case shaka.net.NetworkingEngine.RequestType.MANIFEST:
@@ -21,7 +21,7 @@ export function bindNetworkCalls(player) {
           console.info('[TIMING_DETECTED]');
           break;
         default:
-          console.error('[UNKNOWN_TYPE_DETECTED]', responseType, request);
+          console.error('[UNKNOWN_TYPE_DETECTED]', responseType, response);
       }
     };
   
