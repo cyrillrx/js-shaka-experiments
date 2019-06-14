@@ -32,8 +32,11 @@ A P2P integration should probably act
 Can you briefly describe the difference in network traffic between a Live stream and a VoD stream?
 
 ### Answer
-* VOD streams partial content (HTTP Code 206) vs HTTP 200 for live streams
-* For live streams, the mpd is fetch periodically
+Assuming the live and VoD streams are DASH streams
+* For live streams, the mpd is fetched periodically whereas it is fetched only once for Vod streams. 
+* Also, VoD streams trigger partial content (HTTP Code 206) vs HTTP 200 for live streams. Type is `fetch` for both live and VoD.
+
+For mp4 progressive download, there is first a `document` call on the mp4 to read the header (response code 200) and then several Byte Range request calls of type `media` (response code 206).
 
 ## Question 7
 To fully take advantage of player features to assist its video delivery, there is some advanced information we might want to get:
